@@ -55,6 +55,7 @@ void _atrace_set_tracing_enabled(bool enabled)
     }
 }
 
+//xposed 版AppRuntime
 class AppRuntime : public AndroidRuntime
 {
 public:
@@ -253,8 +254,11 @@ int main(int argc, char* const argv[])
 
     runtime.mParentDir = parentDir;
 
+    //初始化Xposed 返回一个bool值来判断是否已经加载xposed
     isXposedLoaded = xposed::initialize(zygote, startSystemServer, className, argc, argv);
+    //zygote 描述是否需要重启zygote，这个参数来源于启动指令--zygote参数
     if (zygote) {
+        //启动dalvik，根据isXposedLoaded来判断是否加载xposed框架还是正常的zygoteInit类
         runtime.start(isXposedLoaded ? XPOSED_CLASS_DOTS_ZYGOTE : "com.android.internal.os.ZygoteInit",
                 startSystemServer ? "start-system-server" : "");
     } else if (className) {
