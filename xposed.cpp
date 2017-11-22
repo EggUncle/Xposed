@@ -84,7 +84,7 @@ bool initialize(bool zygote, bool startSystemServer, const char* className, int 
         ALOGI("Not loading Xposed for minimal framework (encrypted device)");
         return false;
     }
-
+    //设置一些xposed变量
     xposed->zygote = zygote;
     xposed->startSystemServer = startSystemServer;
     xposed->startClassName = className;
@@ -99,6 +99,7 @@ bool initialize(bool zygote, bool startSystemServer, const char* className, int 
 #endif  // XPOSED_WITH_SELINUX
 
     if (startSystemServer) {
+        //启动log进程来获取自己的log
         xposed::logcat::printStartupMarker();
     } else if (zygote) {
         // TODO Find a better solution for this
@@ -110,6 +111,7 @@ bool initialize(bool zygote, bool startSystemServer, const char* className, int 
     printRomInfo();
 
     if (startSystemServer) {
+        //规避selinux的处理
         if (!xposed::service::startAll()) {
             return false;
         }
@@ -136,6 +138,7 @@ bool initialize(bool zygote, bool startSystemServer, const char* className, int 
     if (isDisabled() || (!zygote && shouldIgnoreCommand(argc, argv)))
         return false;
 
+    //把/system/framework/XposedBridge.jar加载到CLASSPATH环境变量里
     return addJarToClasspath();
 }
 
@@ -384,6 +387,7 @@ static bool determineRuntime(const char** xposedLibPath) {
 void onVmCreated(JNIEnv* env) {
     // Determine the currently active runtime
     const char* xposedLibPath = NULL;
+    //判断当前是art还是dalvik，然后确定要加载的so的位置
     if (!determineRuntime(&xposedLibPath)) {
         ALOGE("Could not determine runtime, not loading Xposed");
         return;
@@ -414,6 +418,7 @@ void onVmCreated(JNIEnv* env) {
 #endif  // XPOSED_WITH_SELINUX
 
     if (xposedInitLib(xposed)) {
+        //调用so中的onVmCreated函数
         xposed->onVmCreated(env);
     }
 }
